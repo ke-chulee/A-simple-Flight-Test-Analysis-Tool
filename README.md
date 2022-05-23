@@ -18,7 +18,7 @@ from dash import Dash, dcc, html, Input, Output, callback, State
 ```
 dataset = pd.read_csv("roll_attitude_frequency_sweep.csv")
 ```
-### Build page_content that uses URL to seperate recording and post-procssing
+### Build page_content that uses URL to control recording and post-procssing
 ```
 @callback(
     Output('page_content', 'children'),
@@ -38,7 +38,9 @@ home_page = html.Div([
     dcc.Link('Start Recording', href='/page-1'),
 ])
 ```
-Real Time data page: 
+#### Real Time data page: 
+Allow user-specified updata display rate through dcc.Input; Support unit transformation through dcc.RadioItems
+
 ```
 realtime_layout = html.Div([
     html.H1('Real Time Data'),
@@ -92,7 +94,10 @@ realtime_layout = html.Div([
     dcc.Link('Post Processing', href='/page-2'),
 ])
 ```
-Post processing page: 
+#### Post processing page: 
+Support unit transformation through dcc.RadioItems; Overlay an arbitrary number of parameters on a single plot, optionally with
+different units and/or data types through dcc.Checklist; Enhance robustness of time-domain and freq-domain analysis through dcc.Slider which allow user to select analysis window.
+
 ```
 postprocess_layout = html.Div([
     html.H1('Post Processing'),
@@ -164,6 +169,10 @@ postprocess_layout = html.Div([
     dcc.Link('Start Recording', href='/page-1')
 ])
 ```
+### Define call back functions
+
+
+
 
 ## Authors
 Ke-Chu Lee [https://www.linkedin.com/in/ke-chu-lee/]
