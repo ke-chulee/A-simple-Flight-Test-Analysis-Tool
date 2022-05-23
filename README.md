@@ -2,7 +2,7 @@
 
 To build a simple Flight-Test Analysis Tool using the Dash-application Python framework that displays the strip charts in real-time, and analyzes recorded signals through interactive-graphing libraries.
 
-### Dependencies
+## Dependencies
 import math
 import pandas as pd
 import numpy as np
@@ -11,12 +11,10 @@ import plotly.graph_objects as go
 from scipy.fft import fft, fftfreq, fftshift
 from dash import Dash, dcc, html, Input, Output, callback, State
 
-### Executing program
-
-* How to run the program
-* Step-by-step bullets
+## Executing program
+Load data
 ```
-code blocks for commands
+dataset = pd.read_csv("roll_attitude_frequency_sweep.csv")
 ```
 
 ## Authors
