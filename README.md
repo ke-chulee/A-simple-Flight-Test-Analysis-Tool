@@ -170,9 +170,243 @@ postprocess_layout = html.Div([
 ])
 ```
 ### Define call back functions
+#### Automative update data and figures through interval
+```
+@app.callback(
+    Output('Interval', 'disabled'),
+    Input('Interval', 'n_intervals'),
+    Input('intervalRateMs', 'value'),
+    [State('Interval', 'disabled')],
+    )
+def callback_stop_interval(n_intervals,intervalRateMs,disabled_state):
+    tnow = int(n_intervals*int(intervalRateMs)/1000)
+    if tnow >= 199:
+        return not disabled_state
+    else:
+        return disabled_state
+
+@app.callback(
+    Output('Chart', 'figure'),
+    Input('Interval', 'n_intervals'),
+    Input('Chart_unit', 'value'),
+    Input('intervalRateMs', 'value'),
+    Input('timeHistoryToDisplay', 'value'),
+    )
+def update_graph(n_intervals,y_unit,intervalRateMs,timeHistoryToDisplay):
+    tnow = int(n_intervals*int(intervalRateMs)/1000)
+    index = int(np.where(dataset['time_s'].values==tnow)[0])
+    if y_unit == 'rad':
+        df = dataset
+        axisrange = 2,.5,.11
+    else:
+        df = dataset*180/math.pi
+        df['time_s'] = df['time_s']*math.pi/180
+        axisrange = 100,20,6
+        
+    # initialize figures
+    fig = make_subplots(
+        rows=3, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.05,
+        subplot_titles=('Roll Accleration Command','Roll Rate','Roll Attitude')
+        )
+    # add tracers
+    if index <= int(timeHistoryToDisplay):    
+        fig.add_trace(go.Scatter(x=df.loc[0:index,'time_s'],
+                                y=df.loc[0:index,'rollAccelerationCommand_rps2'],
+                                name='pdot cmd'), 
+                                row=1, col=1)
+        fig.update_yaxes(range = [-axisrange[0],axisrange[0]], row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.loc[0:index,'time_s'],
+                                y=df.loc[0:index,'measuredRollRate_rps'],
+                                name='p'), 
+                                row=2, col=1)
+        fig.update_yaxes(range = [-axisrange[1],axisrange[1]], row=2, col=1)
+        fig.add_trace(go.Scatter(x=df.loc[0:index,'time_s'],
+                                y=df.loc[0:index,'rollAttitudeCommand_rad'],
+                                name='phi cmd'), 
+                                row=3, col=1) 
+        fig.add_trace(go.Scatter(x=df.loc[0:index,'time_s'],
+                                y=df.loc[0:index,'measuredRollAttitude_rad'],
+                                name='phi'), 
+                                row=3, col=1) 
+        fig.update_yaxes(range = [-axisrange[2],axisrange[2]], row=3, col=1)
+    else:
+        temp = int(timeHistoryToDisplay)/0.01
+        fig.add_trace(go.Scatter(x=df.loc[index-temp:index,'time_s'],
+                                y=df.loc[index-temp:index,'rollAccelerationCommand_rps2'],
+                                name='pdot cmd'), 
+                                row=1, col=1)
+        fig.update_yaxes(range = [-axisrange[0],axisrange[0]], row=1, col=1)
+        fig.add_trace(go.Scatter(x=df.loc[index-temp:index,'time_s'],
+                                y=df.loc[index-temp:index,'measuredRollRate_rps'],
+                                name='p'), 
+                                row=2, col=1)
+        fig.update_yaxes(range = [-axisrange[1],axisrange[1]], row=2, col=1)
+        fig.add_trace(go.Scatter(x=df.loc[index-temp:index,'time_s'],
+                                y=df.loc[index-temp:index,'rollAttitudeCommand_rad'],
+                                name='phi cmd'), 
+                                row=3, col=1) 
+        fig.add_trace(go.Scatter(x=df.loc[index-temp:index,'time_s'],
+                                y=df.loc[index-temp:index,'measuredRollAttitude_rad'],
+                                name='phi'), 
+                                row=3, col=1) 
+        fig.update_yaxes(range = [-axisrange[2],axisrange[2]], row=3, col=1)
+        
+    # update axis properties
+    fig.update_xaxes(title_text='Time [s]', row=3, col=1)
+    fig.update_layout(
+        margin={'l': 40, 'b': 40, 't': 20, 'r': 0}, 
+        showlegend=True)
+
+    return fig
+```
+#### Automative update data and figures based on user's input
+```
+@app.callback(
+    Output('stripChart', 'figure'),
+    Input('stripChart_unit', 'value'),
+    Input('stripChart_time_slider', 'value'),
+    Input('singlePlot_column', 'value')
+    )
+def update_strip_graph(y_unit,time_value,y_col_name):
+    index = int(np.where(dataset['time_s'].values==time_value)[0])
+    if y_unit == 'rad':
+        df = dataset
+    else:
+        df = dataset*180/math.pi
+        df['time_s'] = df['time_s']*math.pi/180
+
+    # initialize figures
+    fig = make_subplots(
+        rows=3, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.05,
+        subplot_titles=('Roll Accleration Command','Roll Rate','Roll Attitude')
+        )
+    # add tracers
+    fig.add_trace(go.Scatter(x=df.loc[index:len(df),'time_s'],
+                                y=df.loc[index:len(df),'rollAccelerationCommand_rps2'],
+                                name='pdot cmd'), 
+                                row=1, col=1)
+    fig.add_trace(go.Scatter(x=df.loc[index:len(df),'time_s'],
+                                y=df.loc[index:len(df),'measuredRollRate_rps'],
+                                name='p'), 
+                                row=2, col=1)
+    fig.add_trace(go.Scatter(x=df.loc[index:len(df),'time_s'],
+                                y=df.loc[index:len(df),'rollAttitudeCommand_rad'],
+                                name='phi cmd'), 
+                                row=3, col=1) 
+    fig.add_trace(go.Scatter(x=df.loc[index:len(df),'time_s'],
+                                y=df.loc[index:len(df),'measuredRollAttitude_rad'],
+                                name='phi'), 
+                                row=3, col=1) 
+    # update axis properties
+    fig.update_xaxes(title_text='Time [s]', row=3, col=1)
+    fig.update_layout(
+        margin={'l': 40, 'b': 40, 't': 20, 'r': 0}, 
+        hovermode='x unified',
+        showlegend=True)
+
+    return fig
+
+def create_timeseries(df, index, y_col_name, title):
+    fig = go.Figure(go.Scatter(x=dataset.loc[index:len(df),'time_s'],
+                          y=np.zeros(len(df)-index),
+                          line=dict(color='#000000'),
+                          name='baseline'))
+    fig.update_xaxes(title_text='Time [s]')
+    fig.update_yaxes(title_text='Recorded Signal(s)')
+    
+    if y_col_name:
+        for i in range(0,len(y_col_name),1):
+            fig.add_trace(go.Scatter(x=df.loc[index:len(df),'time_s'],
+                                     y=df.loc[index:len(df), y_col_name[i]],
+                                     name=y_col_name[i]))
+        fig.update_layout(showlegend=False)
+    
+    fig.update_layout(
+        margin={'l': 20, 'b': 30, 'r': 10, 't': 10}, 
+        hovermode='x unified')
+    fig.add_annotation(x=0, y=0.90, 
+                       xanchor='left', yanchor='bottom',
+                       xref='paper', yref='paper', 
+                       showarrow=False, align='left',
+                       text=title)
+    return fig
 
 
+def create_freqseries(df, index, y_col_name, title):  
+    df = df.loc[index:len(df),:]
+    N = len(df['time_s'])
+    T = 0.01
 
+    fig = go.Figure(go.Scatter(x=np.linspace(-N/2,N/2,N),
+                          y=np.zeros(2*N),
+                          line=dict(color='#000000'),
+                          name='baseline'))
+    fig.update_xaxes(title_text='Frequency')
+    fig.update_yaxes(title_text='Amplitude')
+    
+    if y_col_name:
+        for i in range(0,len(y_col_name),1):
+            y = df.loc[:,y_col_name[i]]
+            yf = fft(y.tolist())
+            xf = fftfreq(N,T)
+            xf = fftshift(xf)
+            yplot = fftshift(yf)
+            fig.add_trace(go.Scatter(x=xf,
+                                     y=1.0/N*np.abs(yplot),
+                                     name=y_col_name[i]))
+        fig.update_layout(showlegend=False)
+
+    fig.update_layout(
+        margin={'l': 20, 'b': 30, 'r': 10, 't': 10}, 
+        hovermode='x unified')
+    fig.add_annotation(x=0, y=0.90, 
+                       xanchor='left', yanchor='bottom',
+                       xref='paper', yref='paper', 
+                       showarrow=False, align='left',
+                       text=title)
+    return fig
+```
+#### Updata values within call functions
+```
+@app.callback(
+    Output('time_series', 'figure'),
+    Input('singlePlot_column', 'value'),
+    Input('stripChart_unit', 'value'),
+    Input('stripChart_time_slider', 'value'),
+    )
+def update_timeseries(y_column_name, y_unit, time_value):
+    index = int(np.where(dataset['time_s'].values==time_value)[0])
+    title = '<b>{}</b><br>{}'.format('Time Domain', y_column_name)
+    if y_unit == 'rad':
+        df = dataset
+    else:
+        df = dataset*180/math.pi
+        df['time_s'] = df['time_s']*math.pi/180
+
+    return create_timeseries(df, index, y_column_name, title)
+
+
+@app.callback(
+    Output('freq_series', 'figure'),
+    Input('singlePlot_column', 'value'),
+    Input('stripChart_unit', 'value'),
+    Input('stripChart_time_slider', 'value'),
+    )
+def update_freqseries(y_column_name, y_unit, time_value):
+    index = int(np.where(dataset['time_s'].values==time_value)[0])
+    title = '<b>{}</b><br>{}'.format('Frequency Domain', y_column_name)
+    if y_unit == 'rad':
+        df = dataset
+    else:
+        df = dataset*180/math.pi
+        df['time_s'] = df['time_s']*math.pi/180
+
+    return create_freqseries(df, index, y_column_name, title)
+```
 
 ## Authors
 Ke-Chu Lee [https://www.linkedin.com/in/ke-chu-lee/]
