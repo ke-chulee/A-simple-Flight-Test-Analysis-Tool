@@ -2,17 +2,14 @@
 
 To build a simple Flight-Test Analysis Tool using the Dash-application Python framework that displays the strip charts in real-time, and analyzes recorded signals through interactive-graphing libraries.
 
-## Getting Started
-
 ### Dependencies
-
-* Describe any prerequisites, libraries, OS version, etc., needed before installing program.
-* ex. Windows 10
-
-### Installing
-
-* How/where to download your program
-* Any modifications needed to be made to files/folders
+import math
+import pandas as pd
+import numpy as np
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+from scipy.fft import fft, fftfreq, fftshift
+from dash import Dash, dcc, html, Input, Output, callback, State
 
 ### Executing program
 
@@ -20,13 +17,6 @@ To build a simple Flight-Test Analysis Tool using the Dash-application Python fr
 * Step-by-step bullets
 ```
 code blocks for commands
-```
-
-## Help
-
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
 ```
 
 ## Authors
