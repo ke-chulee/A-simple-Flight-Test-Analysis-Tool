@@ -1,23 +1,14 @@
-# import dash
 import math
-# import dash_html_components as html
-# import dash_core_components as dcc
-
 import pandas as pd
 import numpy as np
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from scipy.fft import fft, fftfreq, fftshift
-
-# from dash.dependencies import Input, Output
 from dash import Dash, dcc, html, Input, Output, callback, State
-
 
 dataset = pd.read_csv("roll_attitude_frequency_sweep.csv")
 
-
 app = Dash(__name__, suppress_callback_exceptions=True)
-
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -28,6 +19,7 @@ home_page = html.Div([
     dcc.Link('Start Recording', href='/page-1'),
 ])
 
+# Page 1: Display signals at real time
 realtime_layout = html.Div([
     html.H1('Real Time Data'),
     html.Div([
@@ -62,10 +54,9 @@ realtime_layout = html.Div([
             id='Chart_unit',
             inline=True,
             )
-    ], #style={'width': '49%', 'display': 'inline-block'}
+    ],
     ),
     
-
     html.Div([
         dcc.Graph(
             id='Chart'
@@ -77,12 +68,11 @@ realtime_layout = html.Div([
     ],
     ),
 
-
     html.Br(),
     dcc.Link('Post Processing', href='/page-2'),
 ])
 
-
+# Page 2: Singal analysis
 postprocess_layout = html.Div([
     html.H1('Post Processing'),
     html.Div([
@@ -95,7 +85,7 @@ postprocess_layout = html.Div([
             id='stripChart_unit',
             inline=True,
             )
-    ], #style={'width': '49%', 'display': 'inline-block'}
+    ],
     ),
     
     html.Div([
@@ -118,7 +108,7 @@ postprocess_layout = html.Div([
             200: {'label': str(max(dataset['time_s']))}
             },
             )
-    ], #style={'width': '49%', 'padding': '0px 20px 20px 20px'}
+    ],
     ),
     
     html.Div([
@@ -129,7 +119,6 @@ postprocess_layout = html.Div([
             {'label':'Roll Command', 'value':'rollAttitudeCommand_rad'},
             {'label':'Roll Attitude', 'value':'measuredRollAttitude_rad'}
             ],
-            #value=['rollAccelerationCommand_rps2'],
             id='singlePlot_column',
             inline=True,
             )
@@ -152,11 +141,8 @@ postprocess_layout = html.Div([
     
     html.Br(),
     dcc.Link('Start Recording', href='/page-1')
-
 ])
 
-
-# Update the index
 @callback(
     Output('page_content', 'children'),
     Input('url', 'pathname')
@@ -169,14 +155,12 @@ def display_page(pathname):
     else:
         return home_page
 
-
 @app.callback(
     Output('Interval', 'disabled'),
     Input('Interval', 'n_intervals'),
     Input('intervalRateMs', 'value'),
     [State('Interval', 'disabled')],
     )
-
 def callback_stop_interval(n_intervals,intervalRateMs,disabled_state):
     tnow = int(n_intervals*int(intervalRateMs)/1000)
     if tnow >= 199:
@@ -184,18 +168,14 @@ def callback_stop_interval(n_intervals,intervalRateMs,disabled_state):
     else:
         return disabled_state
 
-
 @app.callback(
     Output('Chart', 'figure'),
     Input('Interval', 'n_intervals'),
     Input('Chart_unit', 'value'),
     Input('intervalRateMs', 'value'),
-    #Input('frameRateHz', 'value'),
     Input('timeHistoryToDisplay', 'value'),
     )
-
 def update_graph(n_intervals,y_unit,intervalRateMs,timeHistoryToDisplay):
-
     tnow = int(n_intervals*int(intervalRateMs)/1000)
     index = int(np.where(dataset['time_s'].values==tnow)[0])
     if y_unit == 'rad':
@@ -205,7 +185,7 @@ def update_graph(n_intervals,y_unit,intervalRateMs,timeHistoryToDisplay):
         df = dataset*180/math.pi
         df['time_s'] = df['time_s']*math.pi/180
         axisrange = 100,20,6
-
+        
     # initialize figures
     fig = make_subplots(
         rows=3, cols=1,
@@ -234,7 +214,6 @@ def update_graph(n_intervals,y_unit,intervalRateMs,timeHistoryToDisplay):
                                 name='phi'), 
                                 row=3, col=1) 
         fig.update_yaxes(range = [-axisrange[2],axisrange[2]], row=3, col=1)
-    
     else:
         temp = int(timeHistoryToDisplay)/0.01
         fig.add_trace(go.Scatter(x=df.loc[index-temp:index,'time_s'],
@@ -259,15 +238,11 @@ def update_graph(n_intervals,y_unit,intervalRateMs,timeHistoryToDisplay):
         
     # update axis properties
     fig.update_xaxes(title_text='Time [s]', row=3, col=1)
-
-
     fig.update_layout(
         margin={'l': 40, 'b': 40, 't': 20, 'r': 0}, 
         showlegend=True)
 
     return fig
-
-
 
 @app.callback(
     Output('stripChart', 'figure'),
@@ -276,7 +251,6 @@ def update_graph(n_intervals,y_unit,intervalRateMs,timeHistoryToDisplay):
     Input('singlePlot_column', 'value')
     )
 def update_strip_graph(y_unit,time_value,y_col_name):
-
     index = int(np.where(dataset['time_s'].values==time_value)[0])
     if y_unit == 'rad':
         df = dataset
@@ -310,8 +284,6 @@ def update_strip_graph(y_unit,time_value,y_col_name):
                                 row=3, col=1) 
     # update axis properties
     fig.update_xaxes(title_text='Time [s]', row=3, col=1)
-
-
     fig.update_layout(
         margin={'l': 40, 'b': 40, 't': 20, 'r': 0}, 
         hovermode='x unified',
@@ -319,17 +291,13 @@ def update_strip_graph(y_unit,time_value,y_col_name):
 
     return fig
 
-
-
 def create_timeseries(df, index, y_col_name, title):
-
     fig = go.Figure(go.Scatter(x=dataset.loc[index:len(df),'time_s'],
                           y=np.zeros(len(df)-index),
                           line=dict(color='#000000'),
                           name='baseline'))
     fig.update_xaxes(title_text='Time [s]')
     fig.update_yaxes(title_text='Recorded Signal(s)')
-    # fig = go.Figure()
     
     if y_col_name:
         for i in range(0,len(y_col_name),1):
@@ -349,11 +317,9 @@ def create_timeseries(df, index, y_col_name, title):
     return fig
 
 
-def create_freqseries(df, index, y_col_name, title):
-    
+def create_freqseries(df, index, y_col_name, title):  
     df = df.loc[index:len(df),:]
     N = len(df['time_s'])
-    # T = df.loc['time_s',N-1].values/(N-1)
     T = 0.01
 
     fig = go.Figure(go.Scatter(x=np.linspace(-N/2,N/2,N),
@@ -362,7 +328,6 @@ def create_freqseries(df, index, y_col_name, title):
                           name='baseline'))
     fig.update_xaxes(title_text='Frequency')
     fig.update_yaxes(title_text='Amplitude')
-    # fig = go.Figure()
     
     if y_col_name:
         for i in range(0,len(y_col_name),1):
@@ -386,10 +351,8 @@ def create_freqseries(df, index, y_col_name, title):
                        text=title)
     return fig
 
-
 @app.callback(
     Output('time_series', 'figure'),
-    #Input('stripChart', 'hoverData'),
     Input('singlePlot_column', 'value'),
     Input('stripChart_unit', 'value'),
     Input('stripChart_time_slider', 'value'),
@@ -408,7 +371,6 @@ def update_timeseries(y_column_name, y_unit, time_value):
 
 @app.callback(
     Output('freq_series', 'figure'),
-    #Input('stripChart', 'hoverData'),
     Input('singlePlot_column', 'value'),
     Input('stripChart_unit', 'value'),
     Input('stripChart_time_slider', 'value'),
