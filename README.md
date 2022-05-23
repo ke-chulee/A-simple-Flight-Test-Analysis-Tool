@@ -30,5 +30,4 @@ command to run if program contains helper info
 ```
 
 ## Authors
-Ke-Chu Lee  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+Ke-Chu Lee [@link]([https://twitter.com/dompizzie](https://www.linkedin.com/in/ke-chu-lee/))
