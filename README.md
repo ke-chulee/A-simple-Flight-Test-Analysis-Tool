@@ -370,7 +370,7 @@ def create_freqseries(df, index, y_col_name, title):
                        text=title)
     return fig
 ```
-#### Updata values within call functions
+#### Update values within call functions
 ```
 @app.callback(
     Output('time_series', 'figure'),
