@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from scipy.fft import fft, fftfreq, fftshift
 from dash import Dash, dcc, html, Input, Output, callback, State
 
-dataset = pd.read_csv("roll_attitude_frequency_sweep.csv")
+dataset = pd.read_csv("/Users/smileforgood/Desktop/Intern/ElroyAir/A-simple-Flight-Test-Analysis-Tool-main/roll_attitude_frequency_sweep.csv")
 
 app = Dash(__name__, suppress_callback_exceptions=True)
 
@@ -28,16 +28,16 @@ realtime_layout = html.Div([
             type='number',
             id='intervalRateMs',
             value='1000',
-            min=1, 
+            min=100, 
             max=200000, 
-            step=1000,
+            step=100,
             ),
         html.Label('Input history time window'),
         dcc.Input(
             type='number',
             id='timeHistoryToDisplay',
             value='30',
-            min=1, 
+            min=0, 
             max=200, 
             step=5,
             )
@@ -162,8 +162,8 @@ def display_page(pathname):
     [State('Interval', 'disabled')],
     )
 def callback_stop_interval(n_intervals,intervalRateMs,disabled_state):
-    tnow = int(n_intervals*int(intervalRateMs)/1000)
-    if tnow >= 199:
+    tnext = int((n_intervals+1)*int(intervalRateMs)/1000)
+    if tnext > 200:
         return not disabled_state
     else:
         return disabled_state
