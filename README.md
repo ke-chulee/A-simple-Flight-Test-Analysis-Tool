@@ -285,7 +285,7 @@ def display_page(pathname):
         return home_page
 ```
 
-Use the input paramaters to update `Interval` state. Disable it when tnext greater than recorded time.
+Use the input paramaters to update `dcc.Interval` state. Disable it when tnext greater than recorded time.
 
 
 ```python
@@ -303,7 +303,7 @@ def callback_stop_interval(n_intervals,intervalRateMs,disabled_state):
         return disabled_state
 ```
 
-Use the input paramaters to update `graph` real-time data figure
+Use the input paramaters to update `dcc.graph` real-time data figure
 
 
 ```python
@@ -384,7 +384,7 @@ def update_graph(n_intervals,y_unit,intervalRateMs,timeHistoryToDisplay):
     return fig
 ```
 
-Use the input paramaters to update `graph` strip charts figure
+Use the input paramaters to update `dcc.graph` strip charts figure
 
 
 ```python
