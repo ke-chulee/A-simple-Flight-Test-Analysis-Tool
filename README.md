@@ -106,6 +106,7 @@ realtime_layout = html.Div([
         dcc.Graph(
             id='Chart'
             ),
+        # dcc.Interval will fire a callback periodcially, without needing to refreash the page or click on any buttons.
         dcc.Interval(
             id='Interval',
             interval=1000,
